@@ -1,0 +1,294 @@
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  firstName     String
+  lastName      String
+  phone         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  isVerified    Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  referralCode  String?   @unique
+  role          UserRole  @default(CUSTOMER)
+
+  // Relations
+  addresses     Address[]
+  orders        Order[]
+  reviews       Review[]
+  referredBy    String?
+  referredUsers User[]    @relation("UserReferrals")
+  referrer      User?     @relation("UserReferrals", fields: [referredBy], references: [id])
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+  SUPPORT
+}
+
+model Address {
+  streetAddress String
+  city          String
+  state         String
+  postalCode    String
+  country       String
+  isDefault     Boolean   @default(false)
+  addressType   AddressType
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  user          User      @relation(fields: [userId], references: [id])
+  orders        Order[]
+
+  @@map("addresses")
+}
+
+enum AddressType {
+  SHIPPING
+  BILLING
+  BOTH
+}
+
+model Category {
+  id               String     @id @default(cuid())
+  name             String
+  description      String?
+  slug             String     @unique
+  isActive         Boolean    @default(true)
+  parentCategoryId String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  // Relations
+  parentCategory   Category?  @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id])
+  subCategories    Category[] @relation("CategoryHierarchy")
+  products         Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          String    @id @default(cuid())
+  name        String
+  description String
+  basePrice   Decimal   @db.Decimal(10, 2)
+  sku         String    @unique
+  categoryId  String
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // SEO fields
+  metaTitle   String?
+  metaDescription String?
+  
+  // Relations
+  category    Category          @relation(fields: [categoryId], references: [id])
+  variants    ProductVariant[]
+  reviews     Review[]
+  orderItems  OrderItem[]
+
+  @@map("products")
+}
+
+model ProductVariant {
+  id            String    @id @default(cuid())
+  productId     String
+  sku           String    @unique
+  attributes    Json      // Store color, size, etc. as JSON
+  price         Decimal   @db.Decimal(10, 2)
+  comparePrice  Decimal?  @db.Decimal(10, 2)
+  stockQuantity Int
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  product       Product     @relation(fields: [productId], references: [id])
+  inventory     Inventory[]
+  orderItems    OrderItem[]
+
+  @@map("product_variants")
+}
+
+model Inventory {
+  id            String    @id @default(cuid())
+  variantId     String
+  warehouseId   String
+  quantity      Int
+  reorderPoint  Int
+  maxStock      Int
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  variant       ProductVariant @relation(fields: [variantId], references: [id])
+  warehouse     Warehouse      @relation(fields: [warehouseId], references: [id])
+
+  @@unique([variantId, warehouseId])
+  @@map("inventory")
+}
+
+model Warehouse {
+  id        String      @id @default(cuid())
+  name      String
+  location  String
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  // Relations
+  inventory Inventory[]
+
+  @@map("warehouses")
+}
+
+model Order {
+  id              String        @id @default(cuid())
+  userId          String
+  addressId       String
+  status          OrderStatus   @default(PENDING)
+  totalAmount     Decimal       @db.Decimal(10, 2)
+  taxAmount       Decimal       @db.Decimal(10, 2)
+  shippingAmount  Decimal       @db.Decimal(10, 2)
+  discountAmount  Decimal       @db.Decimal(10, 2)
+  paymentStatus   PaymentStatus @default(PENDING)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  user           User          @relation(fields: [userId], references: [id])
+  address        Address       @relation(fields: [addressId], references: [id])
+  orderItems     OrderItem[]
+  payments       Payment[]
+  delivery       Delivery?
+
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+}
+
+model OrderItem {
+  id          String    @id @default(cuid())
+  orderId     String
+  variantId   String
+  quantity    Int
+  unitPrice   Decimal   @db.Decimal(10, 2)
+  totalPrice  Decimal   @db.Decimal(10, 2)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  order       Order          @relation(fields: [orderId], references: [id])
+  variant     ProductVariant @relation(fields: [variantId], references: [id])
+  product     Product        @relation(fields: [productId], references: [id])
+  productId   String
+
+  @@map("order_items")
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String
+  paymentMethod PaymentMethod
+  transactionId String        @unique
+  amount        Decimal       @db.Decimal(10, 2)
+  status        PaymentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  order         Order         @relation(fields: [orderId], references: [id])
+
+  @@map("payments")
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  UPI
+  WALLET
+  NET_BANKING
+  COD
+}
+
+model Delivery {
+  id                String          @id @default(cuid())
+  orderId          String          @unique
+  partnerId        String
+  trackingNumber   String?
+  status           DeliveryStatus  @default(PENDING)
+  estimatedDelivery DateTime?
+  actualDelivery    DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  // Relations
+  order            Order           @relation(fields: [orderId], references: [id])
+  partner          DeliveryPartner @relation(fields: [partnerId], references: [id])
+
+  @@map("deliveries")
+}
+
+model DeliveryPartner {
+  id        String     @id @default(cuid())
+  name      String
+  apiKey    String     @unique
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  deliveries Delivery[]
+
+  @@map("delivery_partners")
+}
+
+enum DeliveryStatus {
+  PENDING
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+  RETURNED
+}
+
+model Review {
+  id          String    @id @default(cuid())
+  productId   String
+  userId      String
+  rating      Int       @db.SmallInt
+  reviewText  String?
+  isVerified  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  product     Product   @relation(fields: [productId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@map("reviews")
+  @@index([productId])
+  @@index([userId])
+}

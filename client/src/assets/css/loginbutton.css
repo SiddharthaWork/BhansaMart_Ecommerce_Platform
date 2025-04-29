@@ -1,0 +1,45 @@
+.loginbutton {
+    cursor: pointer;
+    position: relative;
+    padding: 12px 20px;
+    font-size: 18px;
+    color: rgb(193, 163, 98);
+    /* border: 2px solid rgb(193, 163, 98); */
+    border-radius: 5px;
+    background-color: #D9F2E7;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+  
+  .loginbutton::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 70px;
+    height: 50px;
+    border-radius:30px;
+    scale: 0;
+    z-index: -1;
+    margin-left: -11px;
+    background-color: #024756 ;
+    transition: all 1.1s cubic-bezier(0.23, 1, 0.320, 1);
+  }
+  
+  .loginbutton:hover::before {
+    scale: 3;
+  }
+  
+  .loginbutton:hover {
+    color: #212121;
+    scale: 1;
+    box-shadow: 0 0px 20px rgba(193, 163, 98,0.4);
+  }
+  
+  .loginbutton:active {
+    scale: 1;
+  }
+  
+  
+  

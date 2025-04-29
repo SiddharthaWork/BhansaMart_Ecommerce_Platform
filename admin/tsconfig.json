@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    },
+    "jsx": "react-jsx",
+    "target": "ES6",
+    "module": "ESNext",
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "strict": true,
+    "esModuleInterop": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "bundler", // Changed from "node" to "bundler" for better performance
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true, // Changed to true since you're likely using a bundler
+    "declaration": false, // Removed as it's not needed if noEmit is true
+    "allowJs": true, // Added for better JavaScript support
+    "incremental": true, // Added for faster subsequent builds
+    "tsBuildInfoFile": "./dist/.tsbuildinfo" // Added for incremental builds
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.spec.tsx",
+    "**/*.test.tsx"
+  ]
+}

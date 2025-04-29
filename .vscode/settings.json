@@ -1,0 +1,26 @@
+{
+    "files.watcherExclude": {
+        "**/node_modules/**": true,
+        "**/dist/**": true,
+        "**/.git/**": true
+    },
+    "files.exclude": {
+        "**/node_modules/**": true,
+        "**/dist/**": true,
+        "**/.git/**": true
+    },
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "editor.formatOnSave": true,
+    "editor.quickSuggestions": {
+        "strings": "on"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+
+}
